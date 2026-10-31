@@ -1,0 +1,67 @@
+[
+  {
+    "id": "sig-1001",
+    "vendor_id": "northstar-logistics",
+    "title": "Port operations slowed after terminal equipment outage",
+    "source": "Pacific Trade Bulletin",
+    "source_url": "https://example.com/reports/port-equipment-outage-1001",
+    "published_at": "2026-10-31T06:40:00Z",
+    "summary": "A terminal operator reported reduced container throughput at Long Beach while crane systems are inspected. The notice gives no confirmed restoration time.",
+    "signal_type": "port disruption",
+    "locations": ["Long Beach, CA"],
+    "severity_weight": 82,
+    "confidence": 89
+  },
+  {
+    "id": "sig-1002",
+    "vendor_id": "northstar-logistics",
+    "title": "Northstar reroutes two inbound containers",
+    "source": "Vanguard shipment feed (synthetic)",
+    "source_url": "https://example.com/shipments/northstar-2026-10-31",
+    "published_at": "2026-10-31T08:15:00Z",
+    "summary": "Two purchase orders due this week show a revised arrival estimate after a carrier route change. The feed does not identify the downstream production lines.",
+    "signal_type": "shipment delay",
+    "locations": ["Long Beach, CA"],
+    "severity_weight": 68,
+    "confidence": 96
+  },
+  {
+    "id": "sig-1003",
+    "vendor_id": "apex-components",
+    "title": "Regional power conservation notice issued in Monterrey",
+    "source": "Regional Grid Updates",
+    "source_url": "https://example.com/grid/monterrey-advisory-1003",
+    "published_at": "2026-10-30T20:00:00Z",
+    "summary": "The utility requests industrial customers to reduce discretionary load for 24 hours. No facility-specific outage has been confirmed.",
+    "signal_type": "utility advisory",
+    "locations": ["Monterrey, MX"],
+    "severity_weight": 54,
+    "confidence": 72
+  },
+  {
+    "id": "sig-1004",
+    "vendor_id": "meridian-packaging",
+    "title": "Quarterly filing notes planned maintenance window",
+    "source": "Meridian investor notice",
+    "source_url": "https://example.com/filings/meridian-maintenance-1004",
+    "published_at": "2026-10-29T15:10:00Z",
+    "summary": "A routine maintenance window is planned next month. Current customer deliveries are not reported as affected.",
+    "signal_type": "planned maintenance",
+    "locations": ["Columbus, OH"],
+    "severity_weight": 21,
+    "confidence": 91
+  },
+  {
+    "id": "sig-1005",
+    "vendor_id": "solstice-energy",
+    "title": "Supplier contract renewal remains unconfirmed",
+    "source": "Vanguard contract tracker (synthetic)",
+    "source_url": "https://example.com/contracts/solstice-renewal-1005",
+    "published_at": "2026-10-31T07:05:00Z",
+    "summary": "A renewal decision is due in 20 days. No interruption notice has been found; the status needs confirmation from the account owner.",
+    "signal_type": "contract watch",
+    "locations": ["Phoenix, AZ"],
+    "severity_weight": 38,
+    "confidence": 61
+  }
+]
