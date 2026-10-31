@@ -32,6 +32,7 @@ class Incident(BaseModel):
     severity: str
     confidence: int
     risk_score: int
+    open_order_exposure_usd: int
     status: IncidentStatus
     first_seen: str
     last_updated: str

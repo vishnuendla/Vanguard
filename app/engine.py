@@ -64,6 +64,7 @@ def load_incidents(status_by_vendor: dict[str, str] | None = None) -> list[Incid
             severity=severity,
             confidence=avg_confidence,
             risk_score=risk_score,
+            open_order_exposure_usd=vendor["estimated_exposure_usd"],
             status=(status_by_vendor or {}).get(vendor_id, "new"),
             first_seen=min(row["published_at"] for row in signals),
             last_updated=max(row["published_at"] for row in signals),

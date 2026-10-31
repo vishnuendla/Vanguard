@@ -11,7 +11,7 @@ function formatTime(date) { return new Intl.DateTimeFormat("en-US", { hour: "num
 function renderMetrics(items) {
   const open = items.filter((i) => !["dismissed", "relevant"].includes(i.status));
   const highest = items.filter((i) => ["critical", "high"].includes(i.severity));
-  const exposure = highest.reduce((sum, i) => sum + (i.vendor_id === "northstar-logistics" ? 420000 : i.vendor_id === "apex-components" ? 185000 : i.vendor_id === "solstice-energy" ? 96000 : 0), 0);
+  const exposure = highest.reduce((sum, i) => sum + i.open_order_exposure_usd, 0);
   $("open-count").textContent = open.length.toString().padStart(2, "0");
   $("exposure").textContent = `$${Math.round(exposure / 1000)}k`;
   $("vendor-count").textContent = new Set(items.map((i) => i.vendor_id)).size.toString().padStart(2, "0");
