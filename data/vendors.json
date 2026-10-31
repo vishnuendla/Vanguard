@@ -1,0 +1,42 @@
+[
+  {
+    "id": "northstar-logistics",
+    "name": "Northstar Logistics",
+    "category": "Freight and logistics",
+    "criticality": "critical",
+    "locations": ["Long Beach, CA", "Oakland, CA"],
+    "open_orders": 18,
+    "estimated_exposure_usd": 420000,
+    "approved_alternatives": ["BlueRail Freight", "Cascadia Cargo"]
+  },
+  {
+    "id": "apex-components",
+    "name": "Apex Components",
+    "category": "Electronic components",
+    "criticality": "high",
+    "locations": ["Austin, TX", "Monterrey, MX"],
+    "open_orders": 7,
+    "estimated_exposure_usd": 185000,
+    "approved_alternatives": ["Vector Circuits"]
+  },
+  {
+    "id": "meridian-packaging",
+    "name": "Meridian Packaging",
+    "category": "Packaging",
+    "criticality": "medium",
+    "locations": ["Columbus, OH"],
+    "open_orders": 4,
+    "estimated_exposure_usd": 38000,
+    "approved_alternatives": ["Lakeview Packaging"]
+  },
+  {
+    "id": "solstice-energy",
+    "name": "Solstice Energy",
+    "category": "Utilities",
+    "criticality": "high",
+    "locations": ["Phoenix, AZ"],
+    "open_orders": 2,
+    "estimated_exposure_usd": 96000,
+    "approved_alternatives": []
+  }
+]
