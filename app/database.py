@@ -26,14 +26,15 @@ def connect(path: Path | None = None) -> sqlite3.Connection:
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
     connection.execute("PRAGMA busy_timeout = 5000")
-    connection.execute("PRAGMA journal_mode = WAL")
     return connection
 
 
 def initialize(path: Path | None = None) -> None:
-    with closing(connect(path)) as db, db:
-        db.executescript(
-            """
+    with closing(connect(path)) as db:
+        db.execute("PRAGMA journal_mode = WAL")
+        with db:
+            db.executescript(
+                """
             CREATE TABLE IF NOT EXISTS incident_status (
                 vendor_id TEXT PRIMARY KEY,
                 status TEXT NOT NULL CHECK(status IN ('new','reviewed','relevant','dismissed')),
@@ -51,7 +52,7 @@ def initialize(path: Path | None = None) -> None:
             CREATE INDEX IF NOT EXISTS idx_audit_log_incident
                 ON audit_log(incident_id, id DESC);
             """
-        )
+            )
 
 
 def status_map(path: Path | None = None) -> dict[str, str]:
@@ -68,27 +69,32 @@ def update_status(
     rationale: str,
     path: Path | None = None,
 ) -> dict[str, Any]:
-    with closing(connect(path)) as db, db:
-        row = db.execute(
-            "SELECT status FROM incident_status WHERE vendor_id = ?", (vendor_id,)
-        ).fetchone()
-        old_status = row["status"] if row else "new"
-        if old_status == new_status:
-            raise StatusConflictError(old_status)
+    with closing(connect(path)) as db:
+        # Reserve the write lock before reading so concurrent updates observe a serialized
+        # status history instead of both recording the same stale old_status.
+        db.execute("BEGIN IMMEDIATE")
+        with db:
+            row = db.execute(
+                "SELECT status FROM incident_status WHERE vendor_id = ?", (vendor_id,)
+            ).fetchone()
+            old_status = row["status"] if row else "new"
+            if old_status == new_status:
+                raise StatusConflictError(old_status)
 
-        now = utc_now()
-        db.execute(
-            "INSERT INTO incident_status(vendor_id, status, updated_at) VALUES(?,?,?) "
-            "ON CONFLICT(vendor_id) DO UPDATE SET status=excluded.status, "
-            "updated_at=excluded.updated_at",
-            (vendor_id, new_status, now),
-        )
-        cursor = db.execute(
-            "INSERT INTO audit_log(incident_id,actor,old_status,new_status,rationale,created_at) "
-            "VALUES(?,?,?,?,?,?)",
-            (incident_id, actor, old_status, new_status, rationale, now),
-        )
-        event_id = cursor.lastrowid
+            now = utc_now()
+            db.execute(
+                "INSERT INTO incident_status(vendor_id, status, updated_at) VALUES(?,?,?) "
+                "ON CONFLICT(vendor_id) DO UPDATE SET status=excluded.status, "
+                "updated_at=excluded.updated_at",
+                (vendor_id, new_status, now),
+            )
+            cursor = db.execute(
+                "INSERT INTO audit_log(incident_id, actor, old_status, new_status, rationale, "
+                "created_at) "
+                "VALUES(?,?,?,?,?,?)",
+                (incident_id, actor, old_status, new_status, rationale, now),
+            )
+            event_id = cursor.lastrowid
 
     return {
         "id": event_id,
