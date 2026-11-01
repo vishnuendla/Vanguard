@@ -134,6 +134,8 @@ Open **http://127.0.0.1:8000**. Interactive API documentation is at **http://127
 
 The local demo token is `local-demo-token`. The dashboard loads it automatically when the app is using the demo configuration. If `VANGUARD_API_TOKEN` is set to a different value, the UI asks for that token instead.
 
+The Docker image sets `VANGUARD_ENV=production` and refuses to start unless `VANGUARD_API_TOKEN` is supplied. Local development defaults to the demo token; never use that token in a deployed environment.
+
 Production installs only need `requirements.txt`:
 
 ```bash
@@ -236,6 +238,7 @@ X-User-Id: <analyst-id>
 
 | Variable | Default | Purpose |
 |---|---|---|
+| `VANGUARD_ENV` | `development` | Set to `production` to require an explicit API token |
 | `VANGUARD_API_TOKEN` | `local-demo-token` | Bearer token for API access |
 | `VANGUARD_DATABASE_PATH` | `data/vanguard.db` | SQLite database location |
 

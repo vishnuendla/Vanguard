@@ -2,6 +2,7 @@ FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
+    VANGUARD_ENV=production \
     VANGUARD_DATABASE_PATH=/app/data/vanguard.db
 
 WORKDIR /app
@@ -13,6 +14,7 @@ RUN pip install --no-cache-dir --no-compile -r requirements.txt \
 COPY --chown=vanguard:vanguard app ./app
 COPY --chown=vanguard:vanguard web ./web
 COPY --chown=vanguard:vanguard data ./data
+RUN mkdir -p /app/data && chown vanguard:vanguard /app/data
 
 USER vanguard
 EXPOSE 8000
