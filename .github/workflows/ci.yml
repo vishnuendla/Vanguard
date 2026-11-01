@@ -41,7 +41,7 @@ jobs:
       - name: Static security analysis
         run: bandit -r app -q
       - name: Dependency vulnerability audit
-        run: pip-audit -r requirements.txt
+        run: pip-audit -r requirements-dev.txt
       - name: Build container image
         run: docker build -t vanguard:ci .
       - name: Scan repository for secrets
