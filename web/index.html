@@ -3,54 +3,295 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#0b1118" />
+    <meta name="theme-color" content="#f7f5f0" />
     <meta
       name="description"
-      content="Vanguard: evidence-led vendor disruption triage with cited sources and human-reviewed decisions."
+      content="Vanguard is an evidence-led vendor disruption workspace with cited signals, transparent risk scoring, and human-reviewed decisions."
     />
-    <title>Vanguard — Supply Risk Desk</title>
+    <title>Vanguard — Vendor risk desk</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/static/styles.css" />
   </head>
   <body>
-    <div class="shell">
+    <div class="app-shell">
       <aside class="sidebar">
-        <a class="brand" href="#top"><span class="brand-mark">V</span><span>VANGUARD<small>INTELLIGENCE DESK</small></span></a>
-        <div class="workspace"><span class="workspace-dot"></span> PROCUREMENT OPERATIONS <span class="chevron">⌄</span></div>
-        <div class="nav-label">WORKSPACE</div>
-        <nav>
-          <a class="nav-item active" href="#top"><span>◈</span> Risk overview <span class="nav-count" id="nav-count">—</span></a>
-          <a class="nav-item" href="#incidents"><span>◉</span> Incident queue</a>
-          <a class="nav-item" href="/docs" target="_blank" rel="noreferrer"><span>▤</span> API reference</a>
+        <a class="brand" href="#overview" aria-label="Vanguard overview">
+          <span class="brand-mark">V</span>
+          <span class="brand-copy">
+            <strong>Vanguard</strong>
+            <small>Vendor risk desk</small>
+          </span>
+        </a>
+
+        <nav class="nav" aria-label="Workspace">
+          <a class="nav-link" href="#overview" data-route="overview">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5h6v5H4zM14 5.5h6v5h-6zM4 13.5h6v5H4zM14 13.5h6v5h-6z" /></svg>
+            <span>Overview</span>
+          </a>
+          <a class="nav-link" href="#incidents" data-route="incidents">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6.5h14M5 12h14M5 17.5h9" /></svg>
+            <span>Incident queue</span>
+          </a>
+          <a class="nav-link" href="#vendors" data-route="vendors">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V8l8-4 8 4v12M9 20v-5h6v5M8 10.5h.01M12 10.5h.01M16 10.5h.01" /></svg>
+            <span>Vendors</span>
+          </a>
+          <a class="nav-link" href="#audit" data-route="audit">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v5l3.5 2M20 12a8 8 0 1 1-2.34-5.66" /></svg>
+            <span>Audit trail</span>
+          </a>
+          <a class="nav-link" href="#api" data-route="api">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 8-4 4 4 4M15 8l4 4-4 4M13 5l-2 14" /></svg>
+            <span>API reference</span>
+          </a>
         </nav>
-        <div class="sidebar-bottom">
-          <div class="coverage-label">DATA COVERAGE <span>DEMO</span></div>
-          <div class="coverage"><i></i><i class="muted"></i><i class="muted"></i><i class="muted"></i><i class="muted"></i></div>
-          <p>Synthetic dataset · no live connectors</p>
-          <div class="profile"><div class="avatar">VE</div><div>Vanguard Evaluator<small>Operations analyst</small></div><span class="online"></span></div>
+
+        <div class="sidebar-note">
+          <p class="note-label">Demo workspace</p>
+          <p>Synthetic vendor and signal data. No live connectors.</p>
+          <p class="note-meta"><span id="sidebar-signals">—</span> signals · <span id="sidebar-vendors">—</span> vendors</p>
+        </div>
+
+        <div class="profile">
+          <span class="avatar" aria-hidden="true">VE</span>
+          <span class="profile-copy">
+            <strong>Vanguard Evaluator</strong>
+            <small>Operations analyst</small>
+          </span>
         </div>
       </aside>
-      <main class="main" id="top">
-        <header class="topbar"><div class="breadcrumb">Intelligence <span>/</span> Risk overview</div><div class="top-actions"><span class="live"><i></i> DEMO MODE</span><button class="icon-button" title="Notifications" aria-label="Notifications">♧<b></b></button><div class="avatar small-avatar">VE</div></div></header>
-        <section class="content">
-          <div class="page-heading"><div><div class="eyebrow" id="desk-date">—</div><h1 id="greeting">Good morning, team.</h1><p>Here’s what’s moving across your supplier network.</p></div><button class="outline-button" id="refresh" type="button">↻ <span>Refresh signals</span></button></div>
-          <div class="metrics">
-            <article class="metric"><div class="metric-top">NEW SIGNALS <span class="metric-icon amber">◈</span></div><div class="metric-value" id="open-count">—</div><div class="metric-note"><span class="amber-text">Needs review</span> across your network</div></article>
-            <article class="metric"><div class="metric-top">OPEN-ORDER EXPOSURE <span class="metric-icon red">↗</span></div><div class="metric-value" id="exposure">—</div><div class="metric-note">Critical/high context, not confirmed loss</div></article>
-            <article class="metric"><div class="metric-top">VENDORS MONITORED <span class="metric-icon blue">⌘</span></div><div class="metric-value" id="vendor-count">—</div><div class="metric-note" id="vendor-note">Across <b>—</b> supply categories</div></article>
-            <article class="metric"><div class="metric-top">MEAN SOURCE CONFIDENCE <span class="metric-icon green">✓</span></div><div class="metric-value" id="confidence">—</div><div class="metric-note">Mean across active signals</div></article>
+
+      <div class="main-column">
+        <header class="topbar">
+          <div class="breadcrumb">
+            <span>Workspace</span>
+            <span aria-hidden="true">/</span>
+            <strong id="breadcrumb-label">Overview</strong>
           </div>
-          <div class="section-heading" id="incidents"><div><div class="eyebrow">PRIORITY QUEUE</div><h2>Signals to review</h2></div><div class="filters"><button class="filter active" data-status="all" type="button">All signals <span id="all-count">0</span></button><button class="filter" data-status="new" type="button">New <span id="new-count">0</span></button><button class="filter" data-status="reviewed" type="button">Reviewed <span id="reviewed-count">0</span></button><button class="filter" data-status="relevant" type="button">Relevant</button><button class="filter" data-status="dismissed" type="button">Dismissed</button></div></div>
-          <div class="incident-layout"><div class="incident-list" id="incident-list"><div class="loading">Loading intelligence feed…</div></div><aside class="detail-panel" id="detail-panel"><div class="detail-empty"><div class="empty-icon">⌖</div><h3>Select a signal</h3><p>Review cited evidence, assess potential impact, then record your decision.</p></div></aside></div>
-          <footer><span>VANGUARD INTELLIGENCE <i>v0.1.0</i></span><span>Evidence-led decisions · Human-reviewed actions</span><a href="/docs" target="_blank" rel="noreferrer">API documentation ↗</a></footer>
-        </section>
-      </main>
+          <div class="topbar-actions">
+            <span class="demo-pill"><span class="dot" aria-hidden="true"></span> Demo data</span>
+            <button class="button button-quiet" id="refresh" type="button">Refresh</button>
+          </div>
+        </header>
+
+        <main class="content">
+          <section class="page" data-page="overview" id="page-overview">
+            <div class="page-heading">
+              <div>
+                <p class="eyebrow" id="desk-date">—</p>
+                <h1 id="greeting">Good morning, team.</h1>
+                <p class="lede">Review cited disruptions, separate facts from inference, and record decisions your team can audit.</p>
+              </div>
+            </div>
+
+            <div class="metrics">
+              <article class="metric">
+                <div class="metric-top">New signals <span class="metric-mark amber">●</span></div>
+                <div class="metric-value" id="metric-new">—</div>
+                <p class="metric-note">Needs an analyst decision</p>
+              </article>
+              <article class="metric">
+                <div class="metric-top">Open-order exposure <span class="metric-mark red">●</span></div>
+                <div class="metric-value" id="metric-exposure">—</div>
+                <p class="metric-note">Context for critical and high signals, not confirmed loss</p>
+              </article>
+              <article class="metric">
+                <div class="metric-top">Vendors monitored <span class="metric-mark blue">●</span></div>
+                <div class="metric-value" id="metric-vendors">—</div>
+                <p class="metric-note" id="metric-categories">Across — categories</p>
+              </article>
+              <article class="metric">
+                <div class="metric-top">Mean confidence <span class="metric-mark green">●</span></div>
+                <div class="metric-value" id="metric-confidence">—</div>
+                <p class="metric-note">Mean across active evidence records</p>
+              </article>
+            </div>
+
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Priority queue</p>
+                <h2>Signals to review</h2>
+              </div>
+              <div class="filter-row" role="group" aria-label="Filter incident list by status">
+                <button class="filter" type="button" data-status="all">All <span data-count="all">0</span></button>
+                <button class="filter" type="button" data-status="new">New <span data-count="new">0</span></button>
+                <button class="filter" type="button" data-status="reviewed">Reviewed <span data-count="reviewed">0</span></button>
+                <button class="filter" type="button" data-status="relevant">Relevant <span data-count="relevant">0</span></button>
+                <button class="filter" type="button" data-status="dismissed">Dismissed <span data-count="dismissed">0</span></button>
+              </div>
+            </div>
+
+            <div class="workspace-grid">
+              <div class="incident-list" id="incident-list">
+                <div class="loading">Loading signals…</div>
+              </div>
+              <aside class="detail-panel" id="detail-panel" aria-live="polite">
+                <div class="empty-state">
+                  <span class="empty-mark" aria-hidden="true">⌖</span>
+                  <h3>Select a signal</h3>
+                  <p>Review cited evidence, assess possible impact, then record your decision.</p>
+                </div>
+              </aside>
+            </div>
+          </section>
+
+          <section class="page" data-page="incidents" id="page-incidents" hidden>
+            <div class="page-heading">
+              <div>
+                <p class="eyebrow">Queue</p>
+                <h1>Incident queue</h1>
+                <p class="lede">Every active signal, ranked by transparent risk. Open an incident to review evidence or record a decision.</p>
+              </div>
+            </div>
+
+            <div class="toolbar">
+              <div class="filter-row" role="group" aria-label="Filter incident queue by status">
+                <button class="filter" type="button" data-status="all">All <span data-count="all">0</span></button>
+                <button class="filter" type="button" data-status="new">New <span data-count="new">0</span></button>
+                <button class="filter" type="button" data-status="reviewed">Reviewed <span data-count="reviewed">0</span></button>
+                <button class="filter" type="button" data-status="relevant">Relevant <span data-count="relevant">0</span></button>
+                <button class="filter" type="button" data-status="dismissed">Dismissed <span data-count="dismissed">0</span></button>
+              </div>
+              <label class="search-field">
+                <span class="sr-only">Search incidents</span>
+                <input id="queue-search" type="search" placeholder="Search vendor, event, or location" autocomplete="off" />
+              </label>
+            </div>
+
+            <div class="table-card">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Vendor</th>
+                    <th scope="col">Severity</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Evidence</th>
+                    <th scope="col" class="numeric">Risk</th>
+                    <th scope="col"><span class="sr-only">Action</span></th>
+                  </tr>
+                </thead>
+                <tbody id="queue-body"></tbody>
+              </table>
+              <div class="empty-state" id="queue-empty" hidden>
+                <span class="empty-mark" aria-hidden="true">⌕</span>
+                <h3>No matching incidents</h3>
+                <p>Try another status or clear the search field.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="page" data-page="vendors" id="page-vendors" hidden>
+            <div class="page-heading">
+              <div>
+                <p class="eyebrow">Network</p>
+                <h1>Vendors</h1>
+                <p class="lede">Monitored suppliers, open-order context, and approved alternatives. Exposure is context, not realized loss.</p>
+              </div>
+            </div>
+            <div class="vendor-grid" id="vendor-grid"></div>
+          </section>
+
+          <section class="page" data-page="audit" id="page-audit" hidden>
+            <div class="page-heading">
+              <div>
+                <p class="eyebrow">Decision history</p>
+                <h1>Audit trail</h1>
+                <p class="lede">Append-only record of analyst decisions. Each entry captures the actor, transition, rationale, and time.</p>
+              </div>
+            </div>
+            <div class="toolbar">
+              <label class="select-field">
+                <span>Incident</span>
+                <select id="audit-filter">
+                  <option value="all">All incidents</option>
+                </select>
+              </label>
+            </div>
+            <div class="audit-list" id="audit-list">
+              <div class="loading">Loading review history…</div>
+            </div>
+          </section>
+
+          <section class="page" data-page="api" id="page-api" hidden>
+            <div class="page-heading">
+              <div>
+                <p class="eyebrow">Reference</p>
+                <h1>API reference</h1>
+                <p class="lede">The dashboard is a client of the same authenticated JSON API. Use it for integrations, scripts, or evaluation.</p>
+              </div>
+            </div>
+
+            <div class="api-grid">
+              <section class="card api-card">
+                <p class="eyebrow">Authentication</p>
+                <h2>Bearer token</h2>
+                <p>Every protected request needs a bearer token and an analyst identifier. The local demo uses <code>local-demo-token</code>.</p>
+                <pre class="code-block"><code>Authorization: Bearer &lt;token&gt;
+X-User-Id: &lt;analyst-id&gt;</code></pre>
+                <div class="inline-actions">
+                  <a class="button button-secondary" href="/docs" target="_blank" rel="noreferrer">Swagger UI ↗</a>
+                  <a class="button button-quiet" href="/openapi.json" target="_blank" rel="noreferrer">OpenAPI JSON ↗</a>
+                </div>
+              </section>
+
+              <section class="card api-card">
+                <p class="eyebrow">Base URL</p>
+                <h2>Local</h2>
+                <p>Run the API with <code>uvicorn app.main:app --reload</code>, then use:</p>
+                <pre class="code-block"><code>http://127.0.0.1:8000</code></pre>
+                <p class="fine-print">The demo token is disclosed only when the app is using the known local demo configuration.</p>
+              </section>
+            </div>
+
+            <section class="card">
+              <div class="card-heading">
+                <div>
+                  <p class="eyebrow">Endpoints</p>
+                  <h2>Available routes</h2>
+                </div>
+              </div>
+              <div class="endpoint-list">
+                <div class="endpoint"><span class="method get">GET</span><code>/api/health</code><span>Public liveness check</span></div>
+                <div class="endpoint"><span class="method get">GET</span><code>/api/config</code><span>Demo token hint; never returns a deployment token</span></div>
+                <div class="endpoint"><span class="method get">GET</span><code>/api/incidents</code><span>Prioritized queue; optional <code>?status=new</code></span></div>
+                <div class="endpoint"><span class="method get">GET</span><code>/api/incidents/{id}</code><span>Incident with evidence and verification needs</span></div>
+                <div class="endpoint"><span class="method patch">PATCH</span><code>/api/incidents/{id}/status</code><span>Record a decision with a required rationale</span></div>
+                <div class="endpoint"><span class="method get">GET</span><code>/api/audit</code><span>Review history; optional <code>?incident_id=...&amp;limit=...</code></span></div>
+                <div class="endpoint"><span class="method get">GET</span><code>/api/vendors</code><span>Monitored vendor records</span></div>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="card-heading">
+                <div>
+                  <p class="eyebrow">Example</p>
+                  <h2>Record a decision</h2>
+                </div>
+                <button class="button button-quiet" type="button" data-copy-target="api-example">Copy</button>
+              </div>
+              <pre class="code-block" id="api-example"><code>curl -X PATCH http://127.0.0.1:8000/api/incidents/inc-northstar-logistics/status \
+  -H "Authorization: Bearer $VANGUARD_TOKEN" \
+  -H "X-User-Id: analyst-01" \
+  -H "Content-Type: application/json" \
+  -d '{"status":"relevant","rationale":"Two shipments need a recovery ETA."}'</code></pre>
+              <p class="fine-print">Repeating the current status returns <code>409</code> so the audit log never records a no-op transition.</p>
+            </section>
+          </section>
+        </main>
+
+        <footer class="site-footer">
+          <span>Vanguard · Evidence-led vendor triage</span>
+          <span>Demo data only</span>
+          <a href="/docs" target="_blank" rel="noreferrer">API documentation ↗</a>
+        </footer>
+      </div>
     </div>
+
     <div id="toast" role="status" aria-live="polite"></div>
     <script src="/static/app.js" defer></script>
   </body>
