@@ -52,6 +52,7 @@ Vanguard models that workflow end to end. Every incident links back to dated evi
 - Lets an analyst mark an incident `reviewed`, `relevant`, or `dismissed` with a required rationale.
 - Records who changed the status, what it changed from, and why.
 - Exposes a JSON API with interactive OpenAPI docs.
+- Follows the operating system's light or dark preference, with a manual system/light/dark toggle that persists.
 - Ships with a self-contained dashboard, tests, CI, and a container build.
 
 ## What it deliberately does not do
@@ -95,6 +96,12 @@ Append-only decision history with actor, status transition, rationale, and times
 The dashboard is a client of the same authenticated JSON API, documented in-app with links to Swagger UI and the OpenAPI schema.
 
 ![API reference page with authentication, base URL, and endpoint list](docs/screenshots/api.png)
+
+### Dark mode
+
+The palette follows the system preference by default. The topbar toggle cycles system → light → dark and remembers the choice.
+
+![Dashboard in dark mode with the same warm palette and contrast hierarchy](docs/screenshots/dark-overview.png)
 
 ## Demo scenario
 
