@@ -27,6 +27,55 @@ const esc = (value) =>
   );
 const SEVERITIES = new Set(["critical", "high", "moderate", "low"]);
 const STATUSES = new Set(["new", "reviewed", "relevant", "dismissed"]);
+const THEME_KEY = "vanguard-theme";
+const THEME_MODES = ["system", "light", "dark"];
+
+function themeMedia() {
+  return window.matchMedia("(prefers-color-scheme: dark)");
+}
+
+function getThemeMode() {
+  try {
+    const stored = localStorage.getItem(THEME_KEY);
+    return THEME_MODES.includes(stored) ? stored : "system";
+  } catch {
+    return "system";
+  }
+}
+
+function resolvedTheme(mode) {
+  if (mode === "light" || mode === "dark") return mode;
+  return themeMedia().matches ? "dark" : "light";
+}
+
+function updateThemeChrome(mode) {
+  const button = $("theme-toggle");
+  if (button) {
+    const label = `Theme: ${mode}`;
+    button.setAttribute("aria-label", label);
+    button.title = `${label} — click to switch`;
+  }
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.content = resolvedTheme(mode) === "dark" ? "#191714" : "#f5f2ea";
+}
+
+function applyThemeMode(mode, { persist = true } = {}) {
+  document.documentElement.dataset.theme = mode;
+  if (persist) {
+    try {
+      localStorage.setItem(THEME_KEY, mode);
+    } catch {
+      // Persisting is best-effort; the current session still switches immediately.
+    }
+  }
+  updateThemeChrome(mode);
+}
+
+function cycleThemeMode() {
+  const next = THEME_MODES[(THEME_MODES.indexOf(getThemeMode()) + 1) % THEME_MODES.length];
+  applyThemeMode(next);
+  toast(next === "system" ? "Theme: follows your system" : `Theme: ${next}`);
+}
 
 function severityClass(value) {
   return SEVERITIES.has(value) ? value : "low";
@@ -577,6 +626,8 @@ function bindEvents() {
     renderAudit();
   });
   $("refresh").addEventListener("click", () => refreshData({ announce: true }));
+  $("theme-toggle").addEventListener("click", cycleThemeMode);
+  themeMedia().addEventListener("change", () => updateThemeChrome(getThemeMode()));
   document.addEventListener("click", (event) => {
     const card = event.target.closest("[data-select-id]");
     if (card) {
@@ -631,6 +682,7 @@ async function start() {
   formatClock();
   setInterval(formatClock, 60_000);
   bindEvents();
+  applyThemeMode(getThemeMode(), { persist: false });
   state.token = sessionStorage.getItem(TOKEN_KEY) || "";
   localStorage.removeItem(TOKEN_KEY);
   try {
