@@ -50,7 +50,7 @@ def test_incident_separates_confirmed_evidence_from_inference() -> None:
         "exposure context, not confirmed loss" in item for item in northstar.inferred_impacts
     )
     assert any("Approved alternatives on file" in item for item in northstar.inferred_impacts)
-    assert engine.ORDER_VERIFICATION in northstar.verification_needed
+    assert engine.load_risk_policy().order_verification in northstar.verification_needed
     assert any("carrier routing" in item for item in northstar.verification_needed)
 
     solstice = incidents["solstice-energy"]
@@ -64,9 +64,10 @@ def test_vendors_are_typed_and_carry_criticality() -> None:
     assert all(vendor.open_orders >= 0 for vendor in vendors)
 
 
-def test_signals_for_unknown_vendors_are_ignored(
+def test_signals_for_unknown_vendors_fail_data_validation(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    policy = engine.load_risk_policy()
     (tmp_path / "vendors.json").write_text(
         json.dumps(
             [
@@ -128,8 +129,21 @@ def test_signals_for_unknown_vendors_are_ignored(
         encoding="utf-8",
     )
     monkeypatch.setattr(engine, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(engine, "load_risk_policy", lambda: policy)
 
-    incidents = engine.load_incidents()
+    with pytest.raises(engine.DataIntegrityError, match="unknown vendors: unknown"):
+        engine.load_incidents()
 
-    assert [incident.vendor_id for incident in incidents] == ["known"]
-    assert {item.id for item in incidents[0].evidence} == {"sig-known"}
+
+def test_risk_explanation_uses_the_versioned_policy() -> None:
+    northstar = next(
+        incident
+        for incident in engine.load_incidents()
+        if incident.vendor_id == "northstar-logistics"
+    )
+
+    explanation = northstar.risk_explanation
+    assert explanation.policy_version == engine.load_risk_policy().version
+    assert explanation.strongest_signal_type == "port disruption"
+    assert explanation.strongest_signal_weight == 82
+    assert explanation.unbounded_score == 86.04

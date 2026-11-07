@@ -16,9 +16,11 @@ RUNTIME_ENV = os.getenv("VANGUARD_ENV", "development").strip().lower()
 configured_token = os.getenv("VANGUARD_API_TOKEN", "").strip()
 DEMO_MODE = os.getenv("VANGUARD_DEMO_MODE", "").strip().lower() == "true"
 
+if RUNTIME_ENV not in {"development", "production"}:
+    raise RuntimeError("VANGUARD_ENV must be either development or production")
 if configured_token:
     API_TOKEN = configured_token
-elif DEMO_MODE and RUNTIME_ENV != "production":
+elif DEMO_MODE and RUNTIME_ENV == "development":
     API_TOKEN = DEMO_API_TOKEN
 elif RUNTIME_ENV == "production":
     raise RuntimeError("VANGUARD_API_TOKEN is required when VANGUARD_ENV=production")

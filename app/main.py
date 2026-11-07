@@ -25,7 +25,7 @@ from app.database import (
     status_map,
     update_status,
 )
-from app.engine import load_incidents, load_vendors
+from app.engine import load_incidents, load_risk_policy, load_vendors
 from app.rate_limit import RateLimiter
 from app.schemas import (
     AuditEvent,
@@ -33,6 +33,7 @@ from app.schemas import (
     Incident,
     IncidentStatus,
     PublicConfig,
+    RiskPolicy,
     StatusUpdate,
     StatusUpdateResponse,
     Vendor,
@@ -42,6 +43,7 @@ from app.schemas import (
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     initialize()
+    load_incidents()
     yield
 
 
@@ -74,6 +76,13 @@ async def security_headers(request: Request, call_next):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; "
+        "img-src 'self' data:; script-src 'self'; style-src 'self' https://fonts.googleapis.com; "
+        "font-src https://fonts.gstatic.com; connect-src 'self'"
+    )
+    if request.url.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-store"
     return response
 
 
@@ -118,6 +127,11 @@ def public_config() -> PublicConfig:
 @app.get("/api/vendors", response_model=list[Vendor])
 def vendors(_: str = Depends(authenticated)) -> list[Vendor]:
     return load_vendors()
+
+
+@app.get("/api/risk-policy", response_model=RiskPolicy)
+def risk_policy(_: str = Depends(authenticated)) -> RiskPolicy:
+    return load_risk_policy()
 
 
 @app.get("/api/incidents", response_model=list[Incident])

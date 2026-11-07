@@ -286,6 +286,11 @@ function renderDetail() {
     </div>
     <div class="detail-body">
       <div class="info-section">
+        <p class="subheading">Why this score</p>
+        <p>Policy ${esc(incident.risk_explanation.policy_version)} · strongest signal: ${esc(incident.risk_explanation.strongest_signal_type)} (${incident.risk_explanation.strongest_signal_weight}/100).</p>
+        <p>Severity ${incident.risk_explanation.severity_points} + exposure ${incident.risk_explanation.exposure_points} + criticality ${incident.risk_explanation.criticality_bonus} = ${incident.risk_explanation.unbounded_score}${incident.risk_explanation.score_cap_applied ? `, capped at ${incident.risk_score}` : ""}.</p>
+      </div>
+      <div class="info-section">
         <p class="subheading">Source evidence</p>
         ${incident.evidence
           .map(
@@ -439,7 +444,7 @@ function renderVendors() {
         </div>
         <div>
           <p class="subheading">Approved alternatives</p>
-          <div class="chip-row" style="margin-top:8px">${
+          <div class="chip-row mt-8">${
             vendor.approved_alternatives.length
               ? vendor.approved_alternatives.map((item) => `<span class="chip">${esc(item)}</span>`).join("")
               : '<span class="chip">None on file</span>'
@@ -449,8 +454,8 @@ function renderVendors() {
           <p class="subheading">Active signal</p>
           ${
             incident
-              ? `<div class="chip-row" style="margin-top:8px"><span class="status-badge status-${statusClass(incident.status)}">${esc(incident.status)}</span><span class="chip">Risk ${incident.risk_score}</span><span class="chip">${esc(incident.event_type)}</span></div><button class="button button-secondary" style="margin-top:12px" type="button" data-open-id="${esc(incident.id)}">Review incident</button>`
-              : '<div class="chip-row" style="margin-top:8px"><span class="chip">No active signal</span></div>'
+              ? `<div class="chip-row mt-8"><span class="status-badge status-${statusClass(incident.status)}">${esc(incident.status)}</span><span class="chip">Risk ${incident.risk_score}</span><span class="chip">${esc(incident.event_type)}</span></div><button class="button button-secondary mt-12" type="button" data-open-id="${esc(incident.id)}">Review incident</button>`
+              : '<div class="chip-row mt-8"><span class="chip">No active signal</span></div>'
           }
         </div>
       </article>`;
