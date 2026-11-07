@@ -201,7 +201,7 @@
               <div>
                 <p class="eyebrow">Decision history</p>
                 <h1>Audit trail</h1>
-                <p class="lede">Append-only record of analyst decisions. Each entry captures the actor, transition, rationale, and time.</p>
+                <p class="lede">Append-only record of review decisions. Each entry captures the trusted service identity, transition, rationale, and time.</p>
               </div>
             </div>
             <div class="toolbar">
@@ -230,9 +230,8 @@
               <section class="card api-card">
                 <p class="eyebrow">Authentication</p>
                 <h2>Bearer token</h2>
-                <p>Every protected request needs a bearer token and an analyst identifier. The local demo uses <code>local-demo-token</code>.</p>
-                <pre class="code-block"><code>Authorization: Bearer &lt;token&gt;
-X-User-Id: &lt;analyst-id&gt;</code></pre>
+                <p>Every protected request needs a bearer token. The local demo uses <code>local-demo-token</code>.</p>
+                <pre class="code-block"><code>Authorization: Bearer &lt;token&gt;</code></pre>
                 <div class="inline-actions">
                   <a class="button button-secondary" href="/docs" target="_blank" rel="noreferrer">Swagger UI ↗</a>
                   <a class="button button-quiet" href="/openapi.json" target="_blank" rel="noreferrer">OpenAPI JSON ↗</a>
@@ -276,7 +275,6 @@ X-User-Id: &lt;analyst-id&gt;</code></pre>
               </div>
               <pre class="code-block" id="api-example"><code>curl -X PATCH http://127.0.0.1:8000/api/incidents/inc-northstar-logistics/status \
   -H "Authorization: Bearer $VANGUARD_TOKEN" \
-  -H "X-User-Id: analyst-01" \
   -H "Content-Type: application/json" \
   -d '{"status":"relevant","rationale":"Two shipments need a recovery ETA."}'</code></pre>
               <p class="fine-print">Repeating the current status returns <code>409</code> so the audit log never records a no-op transition.</p>

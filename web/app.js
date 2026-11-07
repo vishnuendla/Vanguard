@@ -8,7 +8,6 @@ const ROUTES = {
 };
 const state = {
   token: "",
-  actor: "vanguard-analyst",
   incidents: [],
   vendors: [],
   selectedId: null,
@@ -83,7 +82,6 @@ async function api(path, options = {}) {
     ...options,
     headers: {
       Authorization: `Bearer ${state.token}`,
-      "X-User-Id": state.actor,
       "Content-Type": "application/json",
       ...(options.headers || {}),
     },

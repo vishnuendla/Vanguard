@@ -132,9 +132,9 @@ uvicorn app.main:app --reload
 
 Open **http://127.0.0.1:8000**. Interactive API documentation is at **http://127.0.0.1:8000/docs**.
 
-The local demo token is `local-demo-token`. The dashboard loads it automatically when the app is using the demo configuration. If `VANGUARD_API_TOKEN` is set to a different value, the UI asks for that token instead.
+The local demo token is `local-demo-token`. The copied `.env.example` enables it explicitly with `VANGUARD_DEMO_MODE=true`; the dashboard loads it only in that configuration. If `VANGUARD_API_TOKEN` is set to a different value, the UI asks for that token instead.
 
-The Docker image sets `VANGUARD_ENV=production` and refuses to start unless `VANGUARD_API_TOKEN` is supplied. Local development defaults to the demo token; never use that token in a deployed environment.
+The Docker image sets `VANGUARD_ENV=production` and refuses to start unless `VANGUARD_API_TOKEN` is supplied. Local development must explicitly opt into the demo token; never use that token in a deployed environment.
 
 Production installs only need `requirements.txt`:
 
@@ -175,7 +175,6 @@ $env:VANGUARD_TOKEN = "local-demo-token"
 
 $headers = @{
   Authorization = "Bearer $env:VANGUARD_TOKEN"
-  "X-User-Id"  = "analyst-01"
 }
 
 Invoke-RestMethod http://127.0.0.1:8000/api/incidents -Headers $headers |
@@ -201,12 +200,10 @@ export VANGUARD_TOKEN=local-demo-token
 AUTH_HEADER="Authorization: Bearer $VANGUARD_TOKEN"
 
 curl -s http://127.0.0.1:8000/api/incidents \
-  -H "$AUTH_HEADER" \
-  -H 'X-User-Id: analyst-01'
+  -H "$AUTH_HEADER"
 
 curl -s -X PATCH http://127.0.0.1:8000/api/incidents/inc-northstar-logistics/status \
   -H "$AUTH_HEADER" \
-  -H 'X-User-Id: analyst-01' \
   -H 'Content-Type: application/json' \
   -d '{"status":"relevant","rationale":"Two shipments need a recovery ETA."}'
 ```
@@ -219,7 +216,6 @@ Protected endpoints require:
 
 ```text
 Authorization: Bearer <token>
-X-User-Id: <analyst-id>
 ```
 
 | Method | Endpoint | Purpose |
@@ -239,7 +235,10 @@ X-User-Id: <analyst-id>
 | Variable | Default | Purpose |
 |---|---|---|
 | `VANGUARD_ENV` | `development` | Set to `production` to require an explicit API token |
-| `VANGUARD_API_TOKEN` | `local-demo-token` | Bearer token for API access |
+| `VANGUARD_DEMO_MODE` | unset | Set to `true` only for the local demo token |
+| `VANGUARD_API_TOKEN` | unset | Required unless local demo mode is explicitly enabled |
+| `VANGUARD_AUDIT_ACTOR` | service account | Trusted service identity written to audit events |
+| `VANGUARD_RATE_LIMIT_PER_MINUTE` | `120` | Protected API requests allowed per client each minute |
 | `VANGUARD_DATABASE_PATH` | `data/vanguard.db` | SQLite database location |
 
 Values are loaded from `.env` in the project root. Do not commit `.env` or real supplier data. Set a unique random token and use a managed secret store before exposing the service to a network.
@@ -249,8 +248,9 @@ Values are loaded from `.env` in the project root. Do not commit `.env` or real 
 This is a portfolio MVP, not a production identity system. The current controls are deliberately explicit:
 
 - Bearer-token comparison uses a constant-time check.
-- The demo token is disclosed only when the app is using the known demo configuration.
-- `X-User-Id` is self-asserted and must be replaced with SSO-issued identity in production.
+- The demo token is disclosed only when explicitly enabled for the local demo.
+- Audit records use a configured service identity, so a caller cannot claim to be another user with a request header.
+- Protected API requests are throttled per client address to slow brute-force attempts.
 - Status values are a fixed enum; rationale is length-validated; SQL values are parameterized.
 - Audit records are append-only through the API.
 - Responses set `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy`.
@@ -258,7 +258,7 @@ This is a portfolio MVP, not a production identity system. The current controls 
 - SQLite connections are closed deterministically; WAL mode reduces reader/writer contention.
 - The container runs as a non-root user, and `.dockerignore` keeps local environments, tests, and databases out of the build context.
 
-Not included: SSO, RBAC, tenant isolation, rate limiting, CSRF protection for cookie auth, managed secrets, and centralized audit storage. Those are required before real deployment.
+Not included: SSO, RBAC, tenant isolation, distributed rate limiting, CSRF protection for cookie auth, managed secrets, and centralized audit storage. Those are required before real deployment.
 
 ## Quality gates
 
@@ -271,7 +271,7 @@ pip-audit -r requirements.txt
 docker build -t vanguard:local .
 ```
 
-CI runs the same checks on pull requests to `dev` and `main`, plus Gitleaks secret scanning and a container build. Dependabot checks Python and GitHub Actions dependencies. The suite currently has **20 tests** covering authentication, secret non-disclosure, security headers, rationale validation, invalid filters, status conflicts, audit ordering and limits, risk bounds, and unknown-vendor isolation.
+CI runs the same checks on pull requests to `dev` and `main`, plus Gitleaks secret scanning and a container build. Dependabot checks Python and GitHub Actions dependencies. The suite covers authentication, demo-token non-disclosure, security headers, request throttling, rationale validation, audit attribution, status conflicts, risk bounds, and unknown-vendor isolation.
 
 ## Project structure
 
@@ -294,7 +294,7 @@ CI runs the same checks on pull requests to `dev` and `main`, plus Gitleaks secr
 - There is no source freshness, deduplication, conflict detection, or ingestion pipeline.
 - The queue is not paginated; suitable for a demo, not thousands of incidents.
 - SQLite is single-node storage and the schema is created at startup rather than migrated.
-- Authentication is a shared bearer token with a self-asserted actor header.
+- Authentication is a shared bearer token with a configured service identity, not individual user identity.
 - The dashboard is optimized for a desktop operations view.
 
 ## Suggested next improvements
@@ -311,7 +311,7 @@ CI runs the same checks on pull requests to `dev` and `main`, plus Gitleaks secr
 
 6. Replace the shared token with SSO/OIDC and add role-based permissions for triage and audit access.
 7. Move from SQLite to PostgreSQL with migrations, backups, and tenant isolation.
-8. Add rate limiting, request IDs, structured logs, and centralized audit export.
+8. Add distributed rate limiting, request IDs, structured logs, and centralized audit export.
 9. Add an approval workflow for outbound actions such as supplier emails or ticket creation.
 10. Add responsive and accessibility testing for the dashboard.
 
