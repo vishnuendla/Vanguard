@@ -11,6 +11,8 @@ def test_health_is_public_and_sets_security_headers(client: TestClient) -> None:
     assert response.json() == {"status": "ok", "service": "vanguard"}
     assert response.headers["X-Content-Type-Options"] == "nosniff"
     assert response.headers["X-Frame-Options"] == "DENY"
+    assert response.headers["Content-Security-Policy"].startswith("default-src 'self'")
+    assert response.headers["Cache-Control"] == "no-store"
 
 
 def test_public_config_only_exposes_the_demo_token(client: TestClient) -> None:
@@ -80,6 +82,17 @@ def test_vendors_are_protected_and_typed(client: TestClient, auth_headers: dict[
     vendors = response.json()
     assert len(vendors) == 4
     assert {vendor["id"] for vendor in vendors} >= {"northstar-logistics", "solstice-energy"}
+
+
+def test_risk_policy_is_protected_and_versioned(
+    client: TestClient, auth_headers: dict[str, str]
+) -> None:
+    assert client.get("/api/risk-policy").status_code == 401
+
+    policy = client.get("/api/risk-policy", headers=auth_headers)
+    assert policy.status_code == 200
+    assert policy.json()["version"] == "2026-11-07"
+    assert policy.json()["severity_bands"][-1] == {"minimum_score": 0, "severity": "low"}
 
 
 def test_status_change_requires_meaningful_rationale(

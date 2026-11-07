@@ -1130,6 +1130,14 @@ pre code {
   flex-wrap: wrap;
 }
 
+.mt-8 {
+  margin-top: 8px;
+}
+
+.mt-12 {
+  margin-top: 12px;
+}
+
 .chip {
   border: 1px solid var(--border);
   background: var(--surface-2);
