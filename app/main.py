@@ -5,11 +5,18 @@ from contextlib import asynccontextmanager
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app import __version__
-from app.config import API_TOKEN, DEMO_API_TOKEN, ROOT
+from app.config import (
+    API_TOKEN,
+    AUDIT_ACTOR,
+    DEMO_API_TOKEN,
+    DEMO_MODE,
+    RATE_LIMIT_PER_MINUTE,
+    ROOT,
+)
 from app.database import (
     MAX_AUDIT_ROWS,
     StatusConflictError,
@@ -19,6 +26,7 @@ from app.database import (
     update_status,
 )
 from app.engine import load_incidents, load_vendors
+from app.rate_limit import RateLimiter
 from app.schemas import (
     AuditEvent,
     HealthResponse,
@@ -44,11 +52,24 @@ app = FastAPI(
     lifespan=lifespan,
 )
 app.mount("/static", StaticFiles(directory=ROOT / "web"), name="static")
+rate_limiter = RateLimiter(limit=RATE_LIMIT_PER_MINUTE)
 
 
 @app.middleware("http")
 async def security_headers(request: Request, call_next):
-    response = await call_next(request)
+    protected_api = request.url.path.startswith("/api/") and request.url.path not in {
+        "/api/health",
+        "/api/config",
+    }
+    client_address = request.client.host if request.client else "unknown"
+    if protected_api and not rate_limiter.allow(client_address):
+        response = JSONResponse(
+            status_code=429,
+            content={"detail": "Too many requests; try again in one minute"},
+            headers={"Retry-After": "60"},
+        )
+    else:
+        response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
@@ -58,7 +79,6 @@ async def security_headers(request: Request, call_next):
 
 def authenticated(
     authorization: str | None = Header(default=None),
-    x_user_id: str | None = Header(default=None),
 ) -> str:
     scheme, _, supplied = (authorization or "").partition(" ")
     valid_token = bool(supplied) and hmac.compare_digest(supplied, API_TOKEN)
@@ -68,10 +88,7 @@ def authenticated(
             detail="Valid bearer token required",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    actor = (x_user_id or "").strip()
-    if not actor or len(actor) > 100:
-        raise HTTPException(status_code=400, detail="X-User-Id header is required")
-    return actor
+    return AUDIT_ACTOR
 
 
 def _incident_or_404(incident_id: str) -> Incident:
@@ -94,7 +111,7 @@ def health() -> HealthResponse:
 @app.get("/api/config", response_model=PublicConfig)
 def public_config() -> PublicConfig:
     # Only disclose the known development token. A deployment token is never sent to clients.
-    demo_token = API_TOKEN if API_TOKEN == DEMO_API_TOKEN else ""
+    demo_token = API_TOKEN if DEMO_MODE and API_TOKEN == DEMO_API_TOKEN else ""
     return PublicConfig(demo_token=demo_token)
 
 

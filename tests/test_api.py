@@ -37,9 +37,16 @@ def test_invalid_token_is_rejected(client: TestClient) -> None:
     assert response.status_code == 401
 
 
-def test_missing_actor_is_rejected(client: TestClient) -> None:
-    response = client.get("/api/incidents", headers={"Authorization": "Bearer local-demo-token"})
-    assert response.status_code == 400
+def test_shared_token_does_not_accept_client_claimed_actor(
+    client: TestClient, auth_headers: dict[str, str]
+) -> None:
+    response = client.patch(
+        f"/api/incidents/{INCIDENT_ID}/status",
+        headers={**auth_headers, "X-User-Id": "impersonated-user"},
+        json={"status": "reviewed", "rationale": "Review completed by the service account."},
+    )
+    assert response.status_code == 200
+    assert response.json()["audit_event"]["actor"] == "local-demo-analyst"
 
 
 def test_dashboard_returns_cited_evidence_and_uncertainty(
@@ -103,7 +110,7 @@ def test_status_change_creates_audit_entry_and_updates_filter(
         json={"status": "relevant", "rationale": "Two shipment updates need follow-up."},
     )
     assert updated.status_code == 200
-    assert updated.json()["audit_event"]["actor"] == "test-analyst"
+    assert updated.json()["audit_event"]["actor"] == "local-demo-analyst"
     assert updated.json()["audit_event"]["old_status"] == "new"
     assert updated.json()["audit_event"]["new_status"] == "relevant"
 
@@ -167,3 +174,15 @@ def test_unknown_incident_returns_404(client: TestClient, auth_headers: dict[str
         ).status_code
         == 404
     )
+
+
+def test_protected_endpoints_are_rate_limited(
+    client: TestClient, auth_headers: dict[str, str], monkeypatch
+) -> None:
+    monkeypatch.setattr("app.main.rate_limiter.limit", 2)
+    assert client.get("/api/incidents", headers=auth_headers).status_code == 200
+    assert client.get("/api/incidents", headers=auth_headers).status_code == 200
+
+    limited = client.get("/api/incidents", headers=auth_headers)
+    assert limited.status_code == 429
+    assert limited.headers["Retry-After"] == "60"
