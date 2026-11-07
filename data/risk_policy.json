@@ -1,0 +1,27 @@
+{
+  "version": "2026-11-07",
+  "severity_weight": 0.72,
+  "exposure_weight": 12,
+  "criticality_bonus": {
+    "critical": 15,
+    "high": 10,
+    "medium": 5,
+    "low": 0
+  },
+  "max_score": 99,
+  "severity_bands": [
+    {"minimum_score": 75, "severity": "critical"},
+    {"minimum_score": 55, "severity": "high"},
+    {"minimum_score": 35, "severity": "moderate"},
+    {"minimum_score": 0, "severity": "low"}
+  ],
+  "verification_by_signal_type": {
+    "port disruption": "Confirm carrier routing and the recovery timeline for affected shipments.",
+    "shipment delay": "Confirm affected purchase orders and revised receiving dates.",
+    "utility advisory": "Confirm whether supplier production sites lost usable power capacity.",
+    "planned maintenance": "Confirm maintenance dates do not overlap critical deliveries.",
+    "contract watch": "Confirm renewal status and the decision owner with the account team."
+  },
+  "default_verification": "Confirm operational impact directly with the vendor account owner.",
+  "order_verification": "Validate affected purchase orders and receiving dates against the ERP."
+}

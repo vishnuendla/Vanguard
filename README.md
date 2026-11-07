@@ -1,6 +1,7 @@
 # Vanguard
 
 [![CI](https://github.com/vishnuendla/Vanguard/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/vishnuendla/Vanguard/actions/workflows/ci.yml)
+[![License: GPL v3+](https://img.shields.io/badge/License-GPL%20v3%2B-blue.svg)](LICENSE)
 
 **Vendor disruption intelligence that shows its work.**
 
@@ -26,6 +27,7 @@ Vanguard models that workflow end to end. Every incident links back to dated evi
 
 - Aggregates vendor signals into one incident per vendor.
 - Ranks incidents with a transparent, bounded risk score.
+- Uses a versioned risk policy and exposes every score component for review.
 - Shows source evidence with publication dates and URLs.
 - Separates reported facts, potential impact, and verification needs.
 - Lets an analyst mark an incident `reviewed`, `relevant`, or `dismissed` with a required rationale.
@@ -62,9 +64,9 @@ risk = min(99, round(severity_weight × 0.72 + exposure_ratio × 12 + criticalit
 
 - `severity_weight` is the strongest source severity for that vendor (0–100).
 - `exposure_ratio` is the vendor's open-order exposure divided by the largest exposure in the monitored vendor file, capped at 1.
-- `criticality_bonus` is 15 for critical, 10 for high, 5 for medium, and 0 for low.
+- `criticality_bonus` is configured for each vendor criticality level.
 
-Confidence is the mean confidence attached to the evidence records. The UI keeps score, confidence, and exposure separate so none of them masquerades as certainty.
+The policy is versioned in [`data/risk_policy.json`](data/risk_policy.json), validated at startup, and available through `GET /api/risk-policy`. Each incident includes a score explanation with the strongest signal, point contributions, and any applied score cap. Confidence is the mean confidence attached to the evidence records. The UI keeps score, confidence, and exposure separate so none of them masquerades as certainty.
 
 ## How it works
 
@@ -72,6 +74,7 @@ Confidence is the mean confidence attached to the evidence records. The UI keeps
 flowchart LR
   V[data/vendors.json] --> E[Incident engine]
   S[data/signals.json] --> E
+  P[data/risk_policy.json] --> E
   E --> R[Transparent risk score]
   E --> F[Facts, inference, verification]
   R --> API[FastAPI]
@@ -82,8 +85,8 @@ flowchart LR
   API --> DOCS[OpenAPI /docs]
 ```
 
-1. `app/engine.py` loads the vendor and signal files, groups signals by vendor, and builds one incident per vendor with at least one signal.
-2. The engine scores and sorts incidents, then attaches evidence, reported facts, inferred impacts, affected locations, and verification steps.
+1. `app/engine.py` validates vendor, signal, and risk-policy files, rejects duplicate IDs or unknown-vendor signals, then builds one incident per vendor with at least one signal.
+2. The engine scores and sorts incidents from the versioned policy, then attaches evidence, reported facts, inferred impacts, affected locations, verification steps, and score explanations.
 3. `app/database.py` stores the triage status and append-only audit events in SQLite. It uses WAL mode, a busy timeout, and deterministic connection cleanup.
 4. `app/main.py` exposes authenticated endpoints, validates payloads, adds security headers, and serves the dashboard.
 5. The dashboard calls the API, renders the queue and evidence detail, and sends status changes with the analyst's rationale.
@@ -222,6 +225,7 @@ Authorization: Bearer <token>
 |---|---|---|
 | `GET` | `/api/health` | Public liveness check |
 | `GET` | `/api/config` | Demo-only token hint; never returns a deployment token |
+| `GET` | `/api/risk-policy` | Versioned scoring policy and thresholds |
 | `GET` | `/api/incidents` | Prioritized queue; optional `?status=new` |
 | `GET` | `/api/incidents/{id}` | Incident with evidence and verification needs |
 | `PATCH` | `/api/incidents/{id}/status` | Triage update with required rationale |
@@ -254,7 +258,8 @@ This is a portfolio MVP, not a production identity system. The current controls 
 - Status values are a fixed enum; rationale is length-validated; SQL values are parameterized.
 - Audit records are append-only through the API.
 - Responses set `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy`.
-- Evidence URLs must use `http` or `https`.
+- Responses set a restrictive content-security policy and prevent API response caching.
+- Evidence URLs must use `https`.
 - SQLite connections are closed deterministically; WAL mode reduces reader/writer contention.
 - The container runs as a non-root user, and `.dockerignore` keeps local environments, tests, and databases out of the build context.
 
@@ -271,7 +276,7 @@ pip-audit -r requirements.txt
 docker build -t vanguard:local .
 ```
 
-CI runs the same checks on pull requests to `dev` and `main`, plus Gitleaks secret scanning and a container build. Dependabot checks Python and GitHub Actions dependencies. The suite covers authentication, demo-token non-disclosure, security headers, request throttling, rationale validation, audit attribution, status conflicts, risk bounds, and unknown-vendor isolation.
+CI runs the same checks on pull requests to `dev` and `main`, plus Gitleaks secret scanning and a container build. Dependabot checks Python and GitHub Actions dependencies. The suite covers authentication, demo-token non-disclosure, security headers, request throttling, rationale validation, audit attribution, status conflicts, risk-policy explanations, and invalid source-data rejection.
 
 ## Project structure
 
@@ -281,7 +286,7 @@ CI runs the same checks on pull requests to `dev` and `main`, plus Gitleaks secr
 | `app/engine.py` | Signal aggregation, scoring, evidence and inference assembly |
 | `app/database.py` | SQLite triage state and append-only audit log |
 | `app/schemas.py` | Validated API contracts |
-| `data/` | Synthetic vendors and signals |
+| `data/` | Synthetic vendors, signals, and versioned risk policy |
 | `web/` | Dependency-free dashboard |
 | `tests/` | API and engine regression tests |
 | `.github/workflows/` | CI quality gates and container publishing |
@@ -290,7 +295,7 @@ CI runs the same checks on pull requests to `dev` and `main`, plus Gitleaks secr
 
 - The dataset is synthetic and intentionally tiny.
 - There is one incident per vendor, not one per event or shipment.
-- Risk weights are fixed demo heuristics, not learned or calibrated models.
+- The versioned risk policy is a demo heuristic, not a learned or calibrated model.
 - There is no source freshness, deduplication, conflict detection, or ingestion pipeline.
 - The queue is not paginated; suitable for a demo, not thousands of incidents.
 - SQLite is single-node storage and the schema is created at startup rather than migrated.
@@ -323,3 +328,7 @@ CI runs the same checks on pull requests to `dev` and `main`, plus Gitleaks secr
 - Open a PR to `dev`. Release changes move from `dev` to `main` through a reviewed PR after CI passes.
 
 The UI and API are intentionally framework-light. The backend is FastAPI + Pydantic + SQLite; the frontend is plain HTML, CSS, and JavaScript.
+
+## License
+
+Vanguard is licensed under the [GNU General Public License v3.0 or later](LICENSE).
