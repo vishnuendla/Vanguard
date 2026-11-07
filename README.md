@@ -11,6 +11,25 @@ The project is intentionally narrow: one polished supplier-disruption workflow, 
 
 > **Data notice:** the included vendors and signals are synthetic. Source links use `example.com` and are placeholders, not live reporting. Risk scores are transparent demo heuristics, not forecasts, probabilities, or confirmed financial loss.
 
+![Vanguard overview: prioritized signal queue with a cited incident detail and an explainable risk score](docs/screenshots/overview.png)
+
+## Contents
+
+- [Why this exists](#why-this-exists)
+- [What the MVP does](#what-the-mvp-does)
+- [Screenshots](#screenshots)
+- [Demo scenario](#demo-scenario)
+- [How it works](#how-it-works)
+- [Quick start](#quick-start)
+- [Verify it locally](#verify-it-locally)
+- [API](#api)
+- [Configuration](#configuration)
+- [Security model](#security-model)
+- [Quality gates](#quality-gates)
+- [Project structure](#project-structure)
+- [Limitations](#limitations)
+- [License](#license)
+
 ## Why this exists
 
 Supplier risk rarely arrives as one clean alert. An analyst gets a port bulletin, a carrier update, a contract note, and a shipment exception in different formats and at different times. The difficult questions are:
@@ -33,7 +52,7 @@ Vanguard models that workflow end to end. Every incident links back to dated evi
 - Lets an analyst mark an incident `reviewed`, `relevant`, or `dismissed` with a required rationale.
 - Records who changed the status, what it changed from, and why.
 - Exposes a JSON API with interactive OpenAPI docs.
-- Ships with a dependency-free dark dashboard, tests, CI, and a container build.
+- Ships with a self-contained dashboard, tests, CI, and a container build.
 
 ## What it deliberately does not do
 
@@ -42,6 +61,40 @@ Vanguard models that workflow end to end. Every incident links back to dated evi
 - It does not claim the risk score is a probability or a financial forecast.
 - It does not provide production authentication, SSO, or multi-tenant isolation.
 - It does not replace an analyst. It prepares evidence for one.
+
+## Screenshots
+
+All screenshots are captured from the synthetic local demo (`VANGUARD_DEMO_MODE=true`) with no external services. Images live in [`docs/screenshots/`](docs/screenshots/).
+
+### Incident detail
+
+Every incident separates cited evidence, reported facts, inferred impact, and verification steps, then requires a rationale before recording a decision.
+
+![Incident detail with source evidence, facts, inference, verification steps, and decision controls](docs/screenshots/incident-detail.png)
+
+### Incident queue
+
+Search across vendors, events, and locations; filter by triage state; open any row for review.
+
+![Incident queue with status filters and search](docs/screenshots/incidents.png)
+
+### Vendors
+
+Monitored suppliers with criticality, open orders, exposure context, approved alternatives, and the active signal.
+
+![Vendor cards with exposure and approved alternatives](docs/screenshots/vendors.png)
+
+### Audit trail
+
+Append-only decision history with actor, status transition, rationale, and timestamp — filterable by incident.
+
+![Audit trail showing an attributed status transition with rationale](docs/screenshots/audit.png)
+
+### API reference
+
+The dashboard is a client of the same authenticated JSON API, documented in-app with links to Swagger UI and the OpenAPI schema.
+
+![API reference page with authentication, base URL, and endpoint list](docs/screenshots/api.png)
 
 ## Demo scenario
 
@@ -166,6 +219,7 @@ Use this five-minute checklist after starting the server:
 5. **Audit:** switch to the **Relevant** filter and confirm the incident remains visible.
 6. **Conflict handling:** click **Reviewed**, then click **Reviewed** again. The API should return `409` and the dashboard should show a conflict message instead of writing a duplicate audit entry.
 7. **API docs:** open `/docs`, authorize with `local-demo-token`, and try `GET /api/incidents`.
+8. **Policy:** open `/api/risk-policy` and confirm the versioned weights and severity bands match the **Why this score** panel on an incident.
 
 ### API examples
 
