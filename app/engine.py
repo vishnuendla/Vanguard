@@ -79,6 +79,9 @@ def load_incidents(status_by_vendor: dict[str, str] | None = None) -> list[Incid
         )
         event_types = sorted({row["signal_type"] for row in signals})
         signal_count = len(signals)
+        highest_severity_signal = max(
+            signals, key=lambda row: (row["severity_weight"], row["published_at"], row["id"])
+        )
 
         inferred = [
             f"{vendor['open_orders']} open purchase orders may need a delivery-date check.",
@@ -105,8 +108,9 @@ def load_incidents(status_by_vendor: dict[str, str] | None = None) -> list[Incid
                 title=f"{vendor['name']}: {signals[0]['title']}",
                 summary=(
                     f"{signal_count} source signal{'s' if signal_count != 1 else ''} linked to "
-                    f"{vendor['name']}. The highest reported signal is "
-                    f"{signals[0]['signal_type']}; operational impact requires confirmation."
+                    f"{vendor['name']}. The highest-severity reported signal is "
+                    f"{highest_severity_signal['signal_type']}; operational impact requires "
+                    "confirmation."
                 ),
                 event_type=" · ".join(event_types),
                 severity=_severity_for(risk_score),

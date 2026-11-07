@@ -31,6 +31,16 @@ def test_duplicate_signal_records_remain_distinct_evidence() -> None:
     assert {item.id for item in northstar.evidence} == {"sig-1001", "sig-1002"}
 
 
+def test_incident_summary_names_the_highest_severity_signal() -> None:
+    northstar = next(
+        incident
+        for incident in engine.load_incidents()
+        if incident.vendor_id == "northstar-logistics"
+    )
+
+    assert "highest-severity reported signal is port disruption" in northstar.summary
+
+
 def test_incident_separates_confirmed_evidence_from_inference() -> None:
     incidents = {item.vendor_id: item for item in engine.load_incidents()}
 

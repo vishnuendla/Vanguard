@@ -8,7 +8,8 @@ htmlcov/
 .env
 .env.*
 !.env.example
-data/vanguard.db
+data/*.db
+data/*.db-*
 *.log
 .idea/
 .vscode/
